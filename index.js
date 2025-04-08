@@ -17,7 +17,7 @@ const userRoutes = require("./router/userRoute");
 const connectDataBase = require("./confiq/database");
 //handling uncaught exception
 
-const allowedOrigins = ["http://localhost:3000", "http://localhost:3001"];
+const allowedOrigins = ["http://localhost:3000", "http://localhost:3001","https://bycart-admin.netlify.app","https://bycart.netlify.app"];
 
 app.use(
   cors({
