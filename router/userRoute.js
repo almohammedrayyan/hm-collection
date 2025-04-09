@@ -30,5 +30,5 @@ router.get("/get-one-user",authMiddleware,getUser)
 router.post("/logout",logout)
 router.get("/get-all-user",getAllUser)
 router.put("/edit-user/:id",upload.single("avatar"),editUser)
-router.get("/get-one-user/:id",getOneUser)
+router.get("/get-one-user-edit/:id",getOneUser)
 module.exports = router;
