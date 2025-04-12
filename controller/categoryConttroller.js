@@ -65,10 +65,11 @@ exports.updateCategory = async (req, res) => {
 ///catgeory banner
 exports.createCategoryBanner = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name,link } = req.body;
     const avatar = req.file ? req.file.location : null; // AWS S3 URL
     let category = new catgeoryModelBanner({
       name,
+      link,
       avatar,
     });
     await category.save();
