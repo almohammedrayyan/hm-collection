@@ -152,14 +152,16 @@ exports.getAllProduct = async (req, res) => {
     });
   }
 };
+// controller.js
 exports.getAllProductFilter = async (req, res) => {
   try {
-    const { category } = req.body;
+    const { category, limit } = req.query;
 
-    // Find products by category if provided, otherwise return all
-    const query = category ? { category } : {};
+    // Create a filter object
+    const filter = category ? { category } : {};
 
-    const products = await Product.find(query);
+    // Find products by filter and apply limit if provided
+    const products = await Product.find(filter).limit(Number(limit) || 0);
 
     res.status(200).json({
       success: true,
@@ -173,6 +175,7 @@ exports.getAllProductFilter = async (req, res) => {
     });
   }
 };
+
 
 exports.getOneProduct = async (req, res) => {
   try {
