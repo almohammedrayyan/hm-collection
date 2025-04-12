@@ -152,6 +152,27 @@ exports.getAllProduct = async (req, res) => {
     });
   }
 };
+exports.getAllProductFilter = async (req, res) => {
+  try {
+    const { category } = req.body;
+
+    // Find products by category if provided, otherwise return all
+    const query = category ? { category } : {};
+
+    const products = await Product.find(query);
+
+    res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching products",
+      error: error.message,
+    });
+  }
+};
 
 exports.getOneProduct = async (req, res) => {
   try {

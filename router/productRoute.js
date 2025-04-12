@@ -10,6 +10,7 @@ const {
   getOneProduct,
   deleteProduct,
   getOneProductId,
+  getAllProductFilter,
 } = require("../controller/productController");
 const path = uniqid()
 const router = express.Router();
@@ -50,7 +51,7 @@ router.get("/get-products", getAllProduct);
 router.get("/get-one-product/:id", getOneProduct);
 router.get("/get-one-product-id/:productId", getOneProductId);
 
-
+router.get("/get-products-filter",getAllProductFilter)
 // Route to update an existing product by ID
 
 router.put("/get-edit-product/:id", upload.array("images", 10), getEditProduct);
