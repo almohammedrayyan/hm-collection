@@ -153,6 +153,68 @@ exports.getAllProduct = async (req, res) => {
   }
 };
 // controller.js
+
+exports.getAllProductSizeFilter = async (req, res) => {
+  try {
+    const { size,limit } = req.query; // Get size from query params (e.g., ?size=m)
+
+    let filter = {};
+
+    // If a size is provided, filter products with at least one matching sizevalue
+    if (size) {
+      filter.sizes = {
+        $elemMatch: { sizevalue: size.toLowerCase() },
+      };
+    }
+
+    const products = await Product.find(filter).limit(Number(limit) || 0);
+
+    res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching products",
+      error: error.message,
+    });
+  }
+};
+exports.getAllProductPriceFilter = async (req, res) => {
+  try {
+    const { size, limit } = req.query;
+
+    let filter = {};
+
+    // Filter by price range (e.g., "200-300")
+    if (size) {
+      const [minPrice, maxPrice] = size.split("-").map(Number);
+
+      if (!isNaN(minPrice) && !isNaN(maxPrice)) {
+        filter.sizes = {
+          $elemMatch: {
+            price: { $gte: minPrice, $lte: maxPrice },
+          },
+        };
+      }
+    }
+
+    const products = await Product.find(filter).limit(Number(limit) || 0);
+
+    res.status(200).json({
+      success: true,
+      products,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching products",
+      error: error.message,
+    });
+  }
+};
+
 exports.getAllProductFilter = async (req, res) => {
   try {
     const { category, limit } = req.query;

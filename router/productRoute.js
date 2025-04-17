@@ -11,6 +11,8 @@ const {
   deleteProduct,
   getOneProductId,
   getAllProductFilter,
+  getAllProductSizeFilter,
+  getAllProductPriceFilter,
 } = require("../controller/productController");
 const path = uniqid()
 const router = express.Router();
@@ -57,5 +59,6 @@ router.get("/get-products-filter",getAllProductFilter)
 router.put("/get-edit-product/:id", upload.array("images", 10), getEditProduct);
 // Route to delete a product by ID
 router.delete("/delete-product/:id", deleteProduct);
-
+router.get("/get-products-filter-size",getAllProductSizeFilter)
+router.get("/get-products-filter-price",getAllProductPriceFilter)
 module.exports = router;
