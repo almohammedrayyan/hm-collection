@@ -76,8 +76,6 @@ const orderSchema = new mongoose.Schema({
   qr: {
     type: String, // You can change the type based on the actual data type you want
   },
-  paymentMethod:{
-    type:String,
-  }
+
 });
 module.exports = mongoose.model("Order", orderSchema);
