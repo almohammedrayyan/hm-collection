@@ -12,7 +12,7 @@ const server = http.createServer(app);
 const productRoutes = require("./router/productRoute");
 const categoryRoutes = require("./router/categoryRoute");
 const userRoutes = require("./router/userRoute");
-
+const orderRoutes =require("./router/orderRoute")
 
 const connectDataBase = require("./confiq/database");
 //handling uncaught exception
@@ -51,6 +51,7 @@ connectDataBase();
 app.use("/api/v1", productRoutes);
 app.use("/api/v1", categoryRoutes);
 app.use("/api/v1", userRoutes);
+app.use("/api/v1", orderRoutes);
 
 server.listen(process.env.PORT, () => {
   console.log(`server is working on http://localhost:${process.env.PORT}`);
