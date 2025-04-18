@@ -29,6 +29,9 @@ const orderSchema = new mongoose.Schema({
     phoneNumber: {
       type: Number,
     },
+    whatsappNumber: {
+      type: Number,
+    },
   },
   orderItems: [
     {
