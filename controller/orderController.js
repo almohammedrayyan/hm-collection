@@ -1,6 +1,8 @@
 const Order = require("../models/orderModel"); // Adjust the path as needed
 const PaymentGatewayModel = require("../models/paymentModals")
 const Razorpay = require("razorpay");
+const crypto = require("crypto");
+
 // Helper function to generate a unique Order ID
 const generateUniqueOrderId = () => {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
