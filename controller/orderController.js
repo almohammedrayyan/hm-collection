@@ -1,5 +1,6 @@
 const Order = require("../models/orderModel"); // Adjust the path as needed
 const PaymentGatewayModel = require("../models/paymentModals")
+const Razorpay = require("razorpay");
 // Helper function to generate a unique Order ID
 const generateUniqueOrderId = () => {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -19,7 +20,7 @@ const generateUniqueOrderId = () => {
 // Controller: Create Order
 const createOrder = async (req, res) => {
   try {
-    const { shippingInfo, orderItems, user, paymentInfo, totalPrice } =
+    const { shippingInfo, orderItems, user, paymentInfo, totalPrice,paymentMethod } =
       req.body;
 
     if (!orderItems || orderItems.length === 0) {
@@ -33,6 +34,7 @@ const createOrder = async (req, res) => {
       uniqueOrderId: generateUniqueOrderId(),
       paymentInfo,
       totalPrice,
+      paymentMethod,
       paidAt: paymentInfo?.status === "paid" ? Date.now() : null,
     });
 
