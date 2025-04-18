@@ -22,7 +22,7 @@ const generateUniqueOrderId = () => {
 // Controller: Create Order
 const createOrder = async (req, res) => {
   try {
-    const { shippingInfo, orderItems, user, paymentInfo, totalPrice } =
+    const { shippingInfo, orderItems, user, paymentInfo, totalPrice,deliveredAt,paidAt } =
       req.body;
 
     if (!orderItems || orderItems.length === 0) {
@@ -36,7 +36,8 @@ const createOrder = async (req, res) => {
       uniqueOrderId: generateUniqueOrderId(),
       paymentInfo,
       totalPrice,
-      paidAt: paymentInfo?.status === "paid" ? Date.now() : null,
+      deliveredAt,
+      paidAt,
     });
 
     res.status(201).json({
