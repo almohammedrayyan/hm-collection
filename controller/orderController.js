@@ -2,7 +2,7 @@ const Order = require("../models/orderModel"); // Adjust the path as needed
 const PaymentGatewayModel = require("../models/paymentModals")
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
-
+const Product = require("../models/productModel")
 // Helper function to generate a unique Order ID
 const generateUniqueOrderId = () => {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -156,10 +156,75 @@ const paymentGateway = async (req, res) => {
       res.status(500).send(`Error: ${err.message}`);
     }
   };
+  ///updateOdre
+
+  const updateOrder = async (req, res, next) => {
+    try {
+      const order = await Order.findById(req.params.id);
+      if (!order) {
+        return next(new ErrorHandling("Order not found with this ID", 404));
+      }
+  
+      // Flatten orderItems if they are nested
+   
+      
+  
+      if (order.orderStatus === "Delivered") {
+        return next(new ErrorHandling("You have already delivered this order", 400));
+      }
+  
+      // Update stock only if status is being changed to "Shipped"
+      if (req.body.status === "Shipped") {
+        const updateStockPromises = order.orderItems.map(async (o) => {
+          return await updateStock(o.product, o.qty);
+        });
+  
+        await Promise.all(updateStockPromises);
+      }
+  
+      // Update order status
+      order.orderStatus = req.body.status;
+  
+      if (req.body.status === "Delivered" || req.body.status === "Returned") {
+        const deliveryDate = new Date(order.createdAt);
+        deliveryDate.setDate(deliveryDate.getDate() + 7);
+        order.deliveredAt = deliveryDate;
+      }
+  
+      await order.save({ validateBeforeSave: false });
+  
+      res.status(200).json({
+        success: true,
+        message: `Order status updated to ${req.body.status}`,
+      });
+    } catch (error) {
+      return next(new ErrorHandling("Error updating order", 500));
+    }
+  };
+  
+  // Helper function to reduce stock
+  async function updateStock(productId, quantity) {
+    try {
+      const product = await Product.findById(productId);
+      if (!product) throw new Error("Product not found");
+      console.log("Product Before Stock Update:", product); // Log the product
+      if (product.stock < quantity) throw new Error("Insufficient stock");
+  
+      product.stock -= quantity;
+      await product.save();
+      console.log("Product After Stock Update:", product); // Log the updated product
+      return { success: true };
+    } catch (error) {
+      console.error("Error updating stock:", error); // Log any errors
+      return { success: false, error: error.message };
+    }
+  }
+  
 module.exports = {
   createOrder,
   getSingleOrder,
   getAllOrders,
   newUserOrder,
-  getMyOrder,createPayment,paymentGateway
+  getMyOrder,createPayment,paymentGateway,
+  updateOrder
 };

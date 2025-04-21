@@ -35,7 +35,35 @@ const orderSchema = new mongoose.Schema({
   },
   orderItems: [
     {
-      type:Array,
+      title: {
+        type: String,
+        required: true,
+      },
+      price: {
+        type: Number,
+        required: true,
+      },
+      qty: {
+        type: Number,
+        required: true,
+      },
+      image: {
+        type: String,
+        required: true,
+      },
+      size: {
+        type: String,
+      },
+      color: {
+        type: String,
+      },
+      discountPercentage:{
+        type:String,
+      },
+      product: {
+        type: mongoose.Schema.ObjectId,
+        ref: "Product",
+      },
     },
   ],
   user: {
