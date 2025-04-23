@@ -61,13 +61,24 @@ const getSingleOrder = async (req, res, next) => {
   });
 };
 const getMyOrder = async (req, res, next) => {
-  const orders = await Order.find({ user: req.user._id });
+  const { user } = req.query; // ✅ get from query parameters
 
-  res.status(200).json({
-    success: true,
-    orders,
-  });
+  try {
+    const orders = await Order.find({ user });
+
+    res.status(200).json({
+      success: true,
+      orders,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch orders",
+      error: error.message,
+    });
+  }
 };
+
 const newUserOrder = async (req, res, next) => {
   try {
     const userId = req.params.id;
