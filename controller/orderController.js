@@ -22,7 +22,7 @@ const generateUniqueOrderId = () => {
 // Controller: Create Order
 const createOrder = async (req, res) => {
   try {
-    const { shippingInfo, orderItems, user, paymentInfo, totalPrice,deliveredAt,paidAt } =
+    const { shippingInfo, orderItems, user, paymentInfo, totalPrice,deliveredAt,paidAt,customizeProduct } =
       req.body;
 
     if (!orderItems || orderItems.length === 0) {

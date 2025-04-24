@@ -66,6 +66,18 @@ const orderSchema = new mongoose.Schema({
       },
     },
   ],
+  customizeProduct: {
+    size: String,
+    type: String,
+    price: Number,
+    length: String,
+    chest: String,
+    hips: String,
+    sleeve: String,
+    shoulder: String,
+    color: String,
+    description: String,
+  },
   user: {
     type: String,
   },
