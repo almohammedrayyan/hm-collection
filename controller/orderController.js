@@ -22,7 +22,7 @@ const generateUniqueOrderId = () => {
 // Controller: Create Order
 const createOrder = async (req, res) => {
   try {
-    const { shippingInfo, orderItems, user, paymentInfo, totalPrice,deliveredAt,paidAt,customizeProduct } =
+    const { shippingInfo, orderItems, user, paymentInfo, totalPrice,deliveredAt,paidAt } =
       req.body;
 
     if (!orderItems || orderItems.length === 0) {
@@ -38,6 +38,7 @@ const createOrder = async (req, res) => {
       totalPrice,
       deliveredAt,
       paidAt,
+      
     });
 
     res.status(201).json({
@@ -50,16 +51,27 @@ const createOrder = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
-const getSingleOrder = async (req, res, next) => {
-  const order = await Order.findById(req.params.id);
-  if (!order) {
-    return next(new ErrorHandling("Order not found with this Id", 404));
+const getSingleOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found with this ID",
+      });
+    }
+    res.status(200).json({
+      success: true,
+      order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching order details",
+    });
   }
-  res.status(200).json({
-    success: true,
-    order,
-  });
 };
+
 const getMyOrder = async (req, res, next) => {
   const { user } = req.query; // ✅ get from query parameters
 
@@ -169,19 +181,21 @@ const paymentGateway = async (req, res) => {
   };
   ///updateOdre
 
-  const updateOrder = async (req, res, next) => {
+  const updateOrder = async (req, res) => {
     try {
       const order = await Order.findById(req.params.id);
       if (!order) {
-        return next(new ErrorHandling("Order not found with this ID", 404));
+        return res.status(404).json({
+          success: false,
+          message: "Order not found with this ID",
+        });
       }
   
-      // Flatten orderItems if they are nested
-   
-      
-  
       if (order.orderStatus === "Delivered") {
-        return next(new ErrorHandling("You have already delivered this order", 400));
+        return res.status(400).json({
+          success: false,
+          message: "You have already delivered this order",
+        });
       }
   
       // Update stock only if status is being changed to "Shipped"
@@ -209,9 +223,13 @@ const paymentGateway = async (req, res) => {
         message: `Order status updated to ${req.body.status}`,
       });
     } catch (error) {
-      return next(new ErrorHandling("Error updating order", 500));
+      res.status(500).json({
+        success: false,
+        message: "Error updating order",
+      });
     }
   };
+  
   
   // Helper function to reduce stock
   async function updateStock(productId, quantity) {

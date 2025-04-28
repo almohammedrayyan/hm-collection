@@ -1,4 +1,16 @@
 const mongoose = require("mongoose");
+const customizeProductSchema = new mongoose.Schema({
+  size: { type: String },
+  type: { type: String },
+  price: { type: Number },
+  length: { type: String },
+  chest: { type: String },
+  hips: { type: String },
+  sleeve: { type: String },
+  shoulder: { type: String },
+  color: { type: String },
+  description: { type: String },
+}, { _id: false }); // Disable _id inside subdocument if you don't want it
 
 const orderSchema = new mongoose.Schema({
   shippingInfo: {
@@ -64,20 +76,10 @@ const orderSchema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: "Product",
       },
+      customizeProduct: customizeProductSchema,
     },
   ],
-  customizeProduct: {
-    size: String,
-    type: String,
-    price: Number,
-    length: String,
-    chest: String,
-    hips: String,
-    sleeve: String,
-    shoulder: String,
-    color: String,
-    description: String,
-  },
+ 
   user: {
     type: String,
   },
