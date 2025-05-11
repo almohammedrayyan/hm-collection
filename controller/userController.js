@@ -1,12 +1,55 @@
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-
+const nodeMailer = require("nodemailer");
 // Generate JWT Token
 const generateToken = (user) => {
   return jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
+};
+const mailTransport = () => {
+  return nodeMailer.createTransport({
+    host: process.env.SMPT_HOST,
+    port: process.env.SMPT_PORT,
+    service: process.env.SMPT_SERVICE,
+    auth: {
+      user: process.env.SMPT_MAIL,
+      pass: process.env.SMPT_PASSWORD,
+    },
+  });
+};
+const sendWelcomeEmail = async (userEmail, firstName) => {
+  const mailOptions = {
+    from: `"Halema Collection" <${process.env.MPT_MAIL}>`, // Change to your sender name & email
+    to: userEmail,
+    subject: "Welcome to Halema Collection!",
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f7f7f7;">
+        <div style="max-width: 600px; margin: auto; background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+          <h2 style="color: #333;">Welcome to <span style="color: #8a2be2;">Halema Collection</span>, ${firstName}!</h2>
+          <p style="font-size: 16px; color: #555;">
+            Thank you for registering with us. We're thrilled to have you as part of our growing community.
+          </p>
+          <p style="font-size: 16px; color: #555;">
+            Explore our latest collections, stay updated with new arrivals, and enjoy a seamless shopping experience.
+          </p>
+          <hr style="margin: 20px 0;" />
+          <p style="font-size: 14px; color: #888;">
+            If you have any questions or need support, feel free to reply to this email.
+          </p>
+          <p style="font-size: 14px; color: #888;">— The Halema Collection Team</p>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    await mailTransport().sendMail(mailOptions);
+    console.log("Welcome email sent to:", userEmail);
+  } catch (error) {
+    console.error("Error sending welcome email:", error);
+  }
 };
 
 // Register User
@@ -42,7 +85,7 @@ exports.register = async (req, res) => {
       // Optionally, update user with token if you're storing it
       user.token = token;
       await user.save();
-
+      await sendWelcomeEmail(user.email, user.firstName);
       res.status(201).json({ msg: "User registered successfully", token, user });
   } catch (err) {
       console.error(err);

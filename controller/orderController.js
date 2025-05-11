@@ -4,6 +4,95 @@ const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const Product = require("../models/productModel")
 // Helper function to generate a unique Order ID
+const nodemailer = require("nodemailer");
+
+const mailTransport = () =>
+  nodemailer.createTransport({
+    service: "Gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+exports.sendOrderConfirmationEmail = async (toEmail, userName, orderId, shippingInfo) => {
+  const mailOptions = {
+    from: `"Halema Collection" <${process.env.MPT_MAIL}>`,
+    to: toEmail,
+    subject: `Order Received - ${orderId}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9;">
+        <div style="max-width: 600px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+          <h2 style="color: #333;">Hello ${userName},</h2>
+          <p style="font-size: 16px; color: #555;">We’ve received your order <strong>#${orderId}</strong>.</p>
+          <p style="font-size: 16px; color: #555;">Thank you for shopping with <strong>Halema Collection</strong>! We will notify you once your order is shipped.</p>
+          <h4 style="color: #333; margin-top: 30px;">Shipping To:</h4>
+          <p style="color: #555; font-size: 15px;">
+            ${shippingInfo.address}, ${shippingInfo.city},<br/>
+            ${shippingInfo.state}, ${shippingInfo.postalCode},<br/>
+            ${shippingInfo.country}<br/>
+            Phone: ${shippingInfo.phoneNo}
+          </p>
+          <hr style="margin: 20px 0;" />
+          <p style="font-size: 14px; color: #888;">If you have any questions, reply to this email.</p>
+          <p style="font-size: 14px; color: #888;">— The Halema Collection Team</p>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    await mailTransport().sendMail(mailOptions);
+    console.log("Order confirmation email sent to:", toEmail);
+  } catch (error) {
+    console.error("Failed to send order confirmation email:", error);
+  }
+};
+exports.sendOrderStatusEmail = async (toEmail, userName, orderId, status) => {
+  let subject, message;
+
+  if (status === "Shipped") {
+    subject = `Your order #${orderId} has been shipped`;
+    message = `
+      <p>Hi ${userName},</p>
+      <p>Good news! Your order <strong>#${orderId}</strong> has been <strong>shipped</strong>.</p>
+      <p>You can expect delivery within 5-7 business days.</p>
+    `;
+  } else if (status === "Delivered") {
+    subject = `Your order #${orderId} has been delivered`;
+    message = `
+      <p>Hi ${userName},</p>
+      <p>Your order <strong>#${orderId}</strong> has been <strong>delivered</strong>.</p>
+      <p>We hope you enjoy your purchase. Thank you for shopping with Halema Collection!</p>
+    `;
+  } else {
+    return; // Only handle shipped and delivered for now
+  }
+
+  const mailOptions = {
+    from: `"Halema Collection" <${process.env.MPT_MAIL}>`,
+    to: toEmail,
+    subject,
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f2f2f2;">
+        <div style="max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 8px;">
+          <h2 style="color: #8a2be2;">Order Update</h2>
+          ${message}
+          <hr />
+          <p style="font-size: 14px; color: #888;">If you have any questions, reply to this email.</p>
+          <p style="font-size: 14px; color: #888;">— Halema Collection Team</p>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    await mailTransport().sendMail(mailOptions);
+    console.log(`Status update email (${status}) sent to ${toEmail}`);
+  } catch (error) {
+    console.error("Email sending failed:", error);
+  }
+};
 const generateUniqueOrderId = () => {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const numbers = "0123456789";
@@ -22,8 +111,7 @@ const generateUniqueOrderId = () => {
 // Controller: Create Order
 const createOrder = async (req, res) => {
   try {
-    const { shippingInfo, orderItems, user, paymentInfo, totalPrice,deliveredAt,paidAt } =
-      req.body;
+    const { shippingInfo, orderItems, user, paymentInfo, totalPrice, deliveredAt, paidAt } = req.body;
 
     if (!orderItems || orderItems.length === 0) {
       return res.status(400).json({ message: "No order items provided" });
@@ -38,8 +126,10 @@ const createOrder = async (req, res) => {
       totalPrice,
       deliveredAt,
       paidAt,
-      
     });
+
+    // ✅ Send order confirmation email
+    await sendOrderConfirmationEmail(user.email, user.firstName, order.uniqueOrderId, shippingInfo);
 
     res.status(201).json({
       success: true,
@@ -185,29 +275,18 @@ const paymentGateway = async (req, res) => {
     try {
       const order = await Order.findById(req.params.id);
       if (!order) {
-        return res.status(404).json({
-          success: false,
-          message: "Order not found with this ID",
-        });
+        return res.status(404).json({ success: false, message: "Order not found with this ID" });
       }
   
       if (order.orderStatus === "Delivered") {
-        return res.status(400).json({
-          success: false,
-          message: "You have already delivered this order",
-        });
+        return res.status(400).json({ success: false, message: "You have already delivered this order" });
       }
   
-      // Update stock only if status is being changed to "Shipped"
       if (req.body.status === "Shipped") {
-        const updateStockPromises = order.orderItems.map(async (o) => {
-          return await updateStock(o.product, o.qty);
-        });
-  
+        const updateStockPromises = order.orderItems.map((o) => updateStock(o.product, o.qty));
         await Promise.all(updateStockPromises);
       }
   
-      // Update order status
       order.orderStatus = req.body.status;
   
       if (req.body.status === "Delivered" || req.body.status === "Returned") {
@@ -218,15 +297,16 @@ const paymentGateway = async (req, res) => {
   
       await order.save({ validateBeforeSave: false });
   
+      // ✅ Send status email
+      await sendOrderStatusEmail(order.shippingInfo.email, order.shippimgInfo.firstName, order.uniqueOrderId, req.body.status);
+  
       res.status(200).json({
         success: true,
         message: `Order status updated to ${req.body.status}`,
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Error updating order",
-      });
+      console.error(error);
+      res.status(500).json({ success: false, message: "Error updating order" });
     }
   };
   
