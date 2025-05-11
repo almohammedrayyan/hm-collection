@@ -15,7 +15,7 @@ const mailTransport = () =>
     },
   });
 
-exports.sendOrderConfirmationEmail = async (toEmail, userName, orderId, shippingInfo) => {
+const sendOrderConfirmationEmail = async (toEmail, userName, orderId, shippingInfo) => {
   const mailOptions = {
     from: `"Halema Collection" <${process.env.MPT_MAIL}>`,
     to: toEmail,
@@ -48,7 +48,7 @@ exports.sendOrderConfirmationEmail = async (toEmail, userName, orderId, shipping
     console.error("Failed to send order confirmation email:", error);
   }
 };
-exports.sendOrderStatusEmail = async (toEmail, userName, orderId, status) => {
+const sendOrderStatusEmail = async (toEmail, userName, orderId, status) => {
   let subject, message;
 
   if (status === "Shipped") {
