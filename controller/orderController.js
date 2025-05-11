@@ -129,7 +129,7 @@ const createOrder = async (req, res) => {
     });
 
     // ✅ Send order confirmation email
-    await sendOrderConfirmationEmail(user.email, user.firstName, order.uniqueOrderId, shippingInfo);
+    await sendOrderConfirmationEmail(shippingInfo.email, shippingInfo.firstName, order.uniqueOrderId, shippingInfo);
 
     res.status(201).json({
       success: true,
