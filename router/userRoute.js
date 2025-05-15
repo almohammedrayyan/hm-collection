@@ -1,5 +1,5 @@
 const express = require("express");
-const { register, login, firebaseAuth, getUser, logout, getAllUser, editUser, getOneUser } = require("../controller/userController");
+const { register, login, firebaseAuth, getUser, logout, getAllUser, editUser, getOneUser, resetPassword } = require("../controller/userController");
 const multer = require("multer");
 const authMiddleware = require("../middleware/authMiddleware")
 var multerS3 = require("multer-s3-v2");
@@ -31,4 +31,5 @@ router.post("/logout",logout)
 router.get("/get-all-user",getAllUser)
 router.put("/edit-user/:id",upload.single("avatar"),editUser)
 router.get("/get-one-user-edit/:id",getOneUser)
+router.put("/reset-password", resetPassword);
 module.exports = router;

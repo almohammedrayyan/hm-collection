@@ -6,18 +6,22 @@ const Product = require("../models/productModel")
 // Helper function to generate a unique Order ID
 const nodemailer = require("nodemailer");
 
-const mailTransport = () =>
-  nodemailer.createTransport({
-    service: "Gmail",
+const mailTransport = () => {
+  return nodemailer.createTransport({
+    host: process.env.SMPT_HOST,
+    port: process.env.SMPT_PORT,
+    service: process.env.SMPT_SERVICE,
+    secure: true,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: process.env.SMPT_MAIL,
+      pass: process.env.SMPT_PASSWORD,
     },
   });
+};
 
 const sendOrderConfirmationEmail = async (toEmail, userName, orderId, shippingInfo) => {
   const mailOptions = {
-    from: `"Halema Collection" <${process.env.MPT_MAIL}>`,
+    from: `"Halema Collection" <${process.env.SMPT_MAIL}>`,
     to: toEmail,
     subject: `Order Received - ${orderId}`,
     html: `
@@ -29,9 +33,9 @@ const sendOrderConfirmationEmail = async (toEmail, userName, orderId, shippingIn
           <h4 style="color: #333; margin-top: 30px;">Shipping To:</h4>
           <p style="color: #555; font-size: 15px;">
             ${shippingInfo.address}, ${shippingInfo.city},<br/>
-            ${shippingInfo.state}, ${shippingInfo.postalCode},<br/>
+            ${shippingInfo.state}, ${shippingInfo.postalcode}<br/>
             ${shippingInfo.country}<br/>
-            Phone: ${shippingInfo.phoneNo}
+            Phone: ${shippingInfo.whatsAppNumber}
           </p>
           <hr style="margin: 20px 0;" />
           <p style="font-size: 14px; color: #888;">If you have any questions, reply to this email.</p>
@@ -70,7 +74,7 @@ const sendOrderStatusEmail = async (toEmail, userName, orderId, status) => {
   }
 
   const mailOptions = {
-    from: `"Halema Collection" <${process.env.MPT_MAIL}>`,
+    from: `"Halema Collection" <${process.env.SMPT_MAIL}>`,
     to: toEmail,
     subject,
     html: `
@@ -298,7 +302,7 @@ const paymentGateway = async (req, res) => {
       await order.save({ validateBeforeSave: false });
   
       // ✅ Send status email
-      await sendOrderStatusEmail(order.shippingInfo.email, order.shippimgInfo.firstName, order.uniqueOrderId, req.body.status);
+      await sendOrderStatusEmail(order.shippingInfo.email, order.shippingInfo.firstName, order.uniqueOrderId, req.body.status);
   
       res.status(200).json({
         success: true,

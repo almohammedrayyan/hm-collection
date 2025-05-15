@@ -21,7 +21,7 @@ const mailTransport = () => {
 };
 const sendWelcomeEmail = async (userEmail, firstName) => {
   const mailOptions = {
-    from: `"Halema Collection" <${process.env.MPT_MAIL}>`, // Change to your sender name & email
+    from: `"Halema Collection" <${process.env.SMPT_MAIL}>`, // Change to your sender name & email
     to: userEmail,
     subject: "Welcome to Halema Collection!",
     html: `
@@ -226,5 +226,32 @@ exports.getOneUser = async (req, res) => {
   } catch (error) {
       console.error(error);
       res.status(500).json({ msg: "Server error" });
+  }
+};
+exports.resetPassword = async (req, res) => {
+  const { email, oldPassword, newPassword } = req.body;
+
+  if (!email || !oldPassword || !newPassword) {
+    return res.status(400).json({ msg: "Email, old password, and new password are required" });
+  }
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ msg: "User with this email not found" });
+    }
+
+    const isMatch = await user.comparePassword(oldPassword);
+    if (!isMatch) {
+      return res.status(400).json({ msg: "Old password is incorrect" });
+    }
+
+    user.password = newPassword; // will be hashed in pre('save')
+    await user.save();
+
+    res.json({ msg: "Password reset successful" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error" });
   }
 };
