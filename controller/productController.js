@@ -1,4 +1,69 @@
 const Product = require("../models/productModel"); // Capitalize model name for clarity
+// exports.createProduct = async (req, res) => {
+//   try {
+//     const {
+//       title,
+//       discountPercentage,
+//       price,
+//       category,
+//       stock,
+//       description,
+//       materialType,
+//       sizes,
+//     } = req.body;
+
+//     // Extract images from req.files (uploaded via S3)
+//     const images = req.files.map((file, index) => {
+//       const color = req.body.colors ? req.body.colors[index] : null;
+//       return {
+//         imageId: file.key,
+//         url: file.location,
+//         color: color || null,
+//       };
+//     });
+
+//     // Generate prefix using first two letters of category and material
+//     const categoryPrefix = category.substring(0, 2).toLowerCase();
+//     const materialPrefix = materialType.substring(0, 2).toLowerCase();
+//     const prefix = `Pro${categoryPrefix}${materialPrefix}`;
+
+//     // Fetch latest product with same prefix and increment
+//     const latestProduct = await Product.findOne({
+//       productId: { $regex: `^${prefix}\\d{3}$` }
+//     }).sort({ productId: -1 });
+
+//     let sequence = 1;
+//     if (latestProduct) {
+//       const match = latestProduct.productId.match(/\d{3}$/);
+//       if (match) {
+//         sequence = parseInt(match[0]) + 1;
+//       }
+//     }
+
+//     const productId = `${prefix}${String(sequence).padStart(3, '0')}`;
+
+//     const product = new Product({
+//       title,
+//       images,
+//       discountPercentage,
+//       price,
+//       category,
+//       stock,
+//       description,
+//       sizes,
+//       productId,
+//       materialType,
+//     });
+
+//     await product.save();
+
+//     res.status(201).json({ message: "Product created successfully", product });
+//   } catch (error) {
+//     console.error("Error creating product:", error);
+//     res.status(500).json({ error: error.message });
+//   }
+// };
+
 exports.createProduct = async (req, res) => {
   try {
     const {
@@ -12,8 +77,7 @@ exports.createProduct = async (req, res) => {
       sizes,
     } = req.body;
 
-    // Extract images from req.files (uploaded via S3)
-    const images = req.files.map((file, index) => {
+    const images = (req.files.images || []).map((file, index) => {
       const color = req.body.colors ? req.body.colors[index] : null;
       return {
         imageId: file.key,
@@ -22,14 +86,16 @@ exports.createProduct = async (req, res) => {
       };
     });
 
-    // Generate prefix using first two letters of category and material
+    // ✅ Get thumbnail video URL (if uploaded)
+    const thumbnailFile = req.files.thumbnail ? req.files.thumbnail[0] : null;
+    const thumbnail = thumbnailFile ? thumbnailFile.location : null;
+
     const categoryPrefix = category.substring(0, 2).toLowerCase();
     const materialPrefix = materialType.substring(0, 2).toLowerCase();
     const prefix = `Pro${categoryPrefix}${materialPrefix}`;
 
-    // Fetch latest product with same prefix and increment
     const latestProduct = await Product.findOne({
-      productId: { $regex: `^${prefix}\\d{3}$` }
+      productId: { $regex: `^${prefix}\\d{3}$` },
     }).sort({ productId: -1 });
 
     let sequence = 1;
@@ -40,7 +106,7 @@ exports.createProduct = async (req, res) => {
       }
     }
 
-    const productId = `${prefix}${String(sequence).padStart(3, '0')}`;
+    const productId = `${prefix}${String(sequence).padStart(3, "0")}`;
 
     const product = new Product({
       title,
@@ -53,6 +119,7 @@ exports.createProduct = async (req, res) => {
       sizes,
       productId,
       materialType,
+      thumbnail, // ✅ store thumbnail (video) URL
     });
 
     await product.save();
@@ -64,10 +131,89 @@ exports.createProduct = async (req, res) => {
   }
 };
 
+// exports.getEditProduct = async (req, res) => {
+//   try {
+//     const { title, discountPercentage, price, category, stock, description, materialType,sizes } = req.body;
+
+//     console.log("Received files:", req.files);
+//     console.log("Received existingImages (raw):", req.body.existingImages);
+
+//     // Parse existing images from JSON
+//     let existingImages = [];
+//     if (req.body.existingImages) {
+//       try {
+//         existingImages = JSON.parse(req.body.existingImages);
+//       } catch (err) {
+//         console.error("Error parsing existingImages:", err);
+//         existingImages = [];
+//       }
+//     }
+   
+//     // Ensure new images array
+//     const newImages = req.files?.map((file, index) => {
+//       const color = req.body.colors ? req.body.colors[index] : null;
+//       return {
+//         imageId: file.key, // AWS S3 Key
+//         url: file.location, // AWS S3 URL
+//         color: color || null,
+//       };
+//     }) || [];
+
+//     console.log("Parsed existing images:", existingImages);
+//     console.log("New uploaded images:", newImages);
+
+//     // Merge images
+//     // Update existing images with new uploads if the imageId matches
+// const updatedImages = existingImages.map((existingImage) => {
+//   const newImage = newImages.find((img) => img.imageId === existingImage.imageId);
+//   return newImage ? newImage : existingImage;
+// });
+
+// // Add any completely new images that don't match existing ones
+// const finalImages = [...updatedImages, ...newImages.filter(img => !existingImages.some(eImg => eImg.imageId === img.imageId))];
+
+
+//     console.log("Final merged images array:", updatedImages);
+
+//     // Update product data
+//     const updateData = {
+//       title,
+//       images: finalImages,
+//       discountPercentage,
+//       price,
+//       category,
+//       stock,
+//       description,
+//       sizes,
+//       materialType,
+//     };
+
+//     const updatedProduct = await Product.findByIdAndUpdate(
+//       req.params.id,
+//       updateData,
+//       { new: true }
+//     );
+
+//     res.json({ message: "Product updated successfully", updatedProduct });
+//   } catch (error) {
+//     console.error("Error updating product:", error);
+//     res.status(500).json({ error: error.message });
+//   }
+// };
 
 exports.getEditProduct = async (req, res) => {
   try {
-    const { title, discountPercentage, price, category, stock, description, materialType,sizes } = req.body;
+    const { 
+      title,
+      discountPercentage,
+      price,
+      category,
+      stock,
+      description,
+      materialType,
+      sizes,
+      existingThumbnail // passed as a string from frontend (existing thumbnail URL)
+    } = req.body;
 
     console.log("Received files:", req.files);
     console.log("Received existingImages (raw):", req.body.existingImages);
@@ -82,37 +228,47 @@ exports.getEditProduct = async (req, res) => {
         existingImages = [];
       }
     }
-   
-    // Ensure new images array
-    const newImages = req.files?.map((file, index) => {
-      const color = req.body.colors ? req.body.colors[index] : null;
+
+    // Parse colors (if sent as JSON string)
+    let colors = req.body.colors;
+    if (typeof colors === "string") {
+      try {
+        colors = JSON.parse(colors);
+      } catch (err) {
+        colors = [];
+      }
+    }
+
+    // Handle new images
+    const newImages = (req.files.images || []).map((file, index) => {
+      const color = colors ? colors[index] : null;
       return {
-        imageId: file.key, // AWS S3 Key
-        url: file.location, // AWS S3 URL
+        imageId: file.key,
+        url: file.location,
         color: color || null,
       };
-    }) || [];
+    });
 
-    console.log("Parsed existing images:", existingImages);
-    console.log("New uploaded images:", newImages);
+    // Merge new + existing images
+    const updatedImages = existingImages.map((existingImage) => {
+      const newImage = newImages.find((img) => img.imageId === existingImage.imageId);
+      return newImage ? newImage : existingImage;
+    });
 
-    // Merge images
-    // Update existing images with new uploads if the imageId matches
-const updatedImages = existingImages.map((existingImage) => {
-  const newImage = newImages.find((img) => img.imageId === existingImage.imageId);
-  return newImage ? newImage : existingImage;
-});
+    const finalImages = [
+      ...updatedImages,
+      ...newImages.filter(img => !existingImages.some(eImg => eImg.imageId === img.imageId))
+    ];
 
-// Add any completely new images that don't match existing ones
-const finalImages = [...updatedImages, ...newImages.filter(img => !existingImages.some(eImg => eImg.imageId === img.imageId))];
+    // Handle thumbnail (new or keep existing)
+    const newThumbnailFile = req.files.thumbnail ? req.files.thumbnail[0] : null;
+    const thumbnail = newThumbnailFile ? newThumbnailFile.location : existingThumbnail;
 
-
-    console.log("Final merged images array:", updatedImages);
-
-    // Update product data
+    // Prepare update data
     const updateData = {
       title,
       images: finalImages,
+      thumbnail, // ✅ Single string URL (either new or existing)
       discountPercentage,
       price,
       category,
@@ -134,7 +290,6 @@ const finalImages = [...updatedImages, ...newImages.filter(img => !existingImage
     res.status(500).json({ error: error.message });
   }
 };
-
 
 exports.getAllProduct = async (req, res) => {
   try {
