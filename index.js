@@ -17,26 +17,31 @@ const orderRoutes =require("./router/orderRoute")
 const connectDataBase = require("./confiq/database");
 //handling uncaught exception
 
-const allowedOrigins = ["http://localhost:3000", "http://localhost:3001","https://bycart-admin.netlify.app","https://bycart.netlify.app"];
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true, // If you need to send cookies or authentication headers
-  })
-);
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "https://bycart-admin.netlify.app",
+      "https://bycart.netlify.app",
+    ];
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: "Origin,X-Requested-With,Content-Type,Accept,Authorization",
+};
+app.use(cors(corsOptions));
 dotenv.config({ path: ".env" });
 app.use(cookie());
 app.use(express.json({ limit: "500mb" }));
 app.use(express.urlencoded({ limit: "500mb", extended: true }));
-app.use(bodyParser.urlencoded({ limit: "500mb", extended: true }));
-app.use(bodyParser.json({ limit: "500mb" }));
+// app.use(bodyParser.urlencoded({ limit: "500mb", extended: true }));
+// app.use(bodyParser.json({ limit: "500mb" }));
 process.on("uncaughtException", (err) => {
   console.log(`Error:${err.message}`);
   console.log(`Shutting down the server due to unhandled promise rejection`);
