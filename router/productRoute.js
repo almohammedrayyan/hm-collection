@@ -53,7 +53,7 @@ const upload = multer({
       cb(null, uniqueFileName);
     },
   }),
-  limits: { fileSize: 50 * 1024 * 1024 }, // Increase for video (e.g., 50MB)
+  limits: { fileSize: 200 * 1024 * 1024 }, // Increase for video (e.g., 50MB)
 });
 
   // Allow up to 5 images per request
