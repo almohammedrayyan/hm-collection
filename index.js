@@ -40,8 +40,8 @@ dotenv.config({ path: ".env" });
 app.use(cookie());
 app.use(express.json({ limit: "500mb" }));
 app.use(express.urlencoded({ limit: "500mb", extended: true }));
-// app.use(bodyParser.urlencoded({ limit: "500mb", extended: true }));
-// app.use(bodyParser.json({ limit: "500mb" }));
+app.use(bodyParser.urlencoded({ limit: "500mb", extended: true }));
+app.use(bodyParser.json({ limit: "500mb" }));
 process.on("uncaughtException", (err) => {
   console.log(`Error:${err.message}`);
   console.log(`Shutting down the server due to unhandled promise rejection`);
