@@ -1,5 +1,6 @@
 const Category = require("../models/categoryModel");
 const catgeoryModelBanner = require("../models/catgeoryModelBanner");
+const nodemailer = require("nodemailer");
 exports.createCategory = async (req, res) => {
   try {
     const category = await Category.create(req.body);
@@ -65,7 +66,7 @@ exports.updateCategory = async (req, res) => {
 ///catgeory banner
 exports.createCategoryBanner = async (req, res) => {
   try {
-    const { name,link } = req.body;
+    const { name, link } = req.body;
     const avatar = req.file ? req.file.location : null; // AWS S3 URL
     let category = new catgeoryModelBanner({
       name,
@@ -100,7 +101,9 @@ exports.getOneCategoryBanner = async (req, res) => {
 
 exports.getDeleteCategoryBanner = async (req, res) => {
   try {
-    const categoryOne = await catgeoryModelBanner.findByIdAndDelete(req.params.id);
+    const categoryOne = await catgeoryModelBanner.findByIdAndDelete(
+      req.params.id
+    );
     if (!categoryOne) {
       return res.status(404).json({ message: "Category not found" });
     }
@@ -132,5 +135,38 @@ exports.updateCategoryBanner = async (req, res) => {
       .json({ message: "Category updated successfully", updatedCategory });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+exports.createContact = async (req, res) => {
+  const { firstName, lastName, email, phone, message } = req.body;
+
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.SMPT_MAIL,
+        pass: process.env.SMPT_PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: email,
+      to: "haleemacollection82@gmail.com",
+      subject: "New Contact Form Submission",
+      html: `
+        <h3>Contact Details</h3>
+        <p><strong>First Name:</strong> ${firstName}</p>
+        <p><strong>Last Name:</strong> ${lastName}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
+        <p><strong>Message:</strong><br/> ${message}</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ message: "Email sent successfully!" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to send email", error });
   }
 };

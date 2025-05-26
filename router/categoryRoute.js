@@ -10,6 +10,7 @@ const {
   getOneCategoryBanner,
   updateCategoryBanner,
   getDeleteCategoryBanner,
+  createContact,
 } = require("../controller/categoryConttroller");
 const multer = require("multer");
 var multerS3 = require("multer-s3-v2");
@@ -62,4 +63,5 @@ router.get("/get-one-category-banner/:id", getOneCategoryBanner);
 router.put("/get-edit-category-banner/:id", upload.single("avatar"),updateCategoryBanner);
 // Route to delete a product by ID
 router.delete("/delete-category-banner/:id", getDeleteCategoryBanner);
+router.post("/create-contact",createContact)
 module.exports = router;
