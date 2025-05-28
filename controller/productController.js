@@ -349,8 +349,8 @@ exports.getAllProductSizeFilter = async (req, res) => {
       l: [54],
       xl: [56],
       xxl: [58],
-      '3xxl': [60],
-      '4xxl': [62],
+      '3xl': [60],
+      '4xl': [62],
     };
 
     if (size) {
