@@ -309,16 +309,61 @@ exports.getAllProduct = async (req, res) => {
 };
 // controller.js
 
+// exports.getAllProductSizeFilter = async (req, res) => {
+//   try {
+//     const { size,limit } = req.query; // Get size from query params (e.g., ?size=m)
+
+//     let filter = {};
+
+//     // If a size is provided, filter products with at least one matching sizevalue
+//     if (size) {
+//       filter.sizes = {
+//         $elemMatch: { sizevalue: size.toLowerCase() },
+//       };
+//     }
+
+//     const products = await Product.find(filter).limit(Number(limit) || 0);
+
+//     res.status(200).json({
+//       success: true,
+//       products,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: "Error fetching products",
+//       error: error.message,
+//     });
+//   }
+// };
 exports.getAllProductSizeFilter = async (req, res) => {
   try {
-    const { size,limit } = req.query; // Get size from query params (e.g., ?size=m)
+    const { size, limit } = req.query;
 
     let filter = {};
 
-    // If a size is provided, filter products with at least one matching sizevalue
+    // Size mapping: 'm' includes these numeric values
+    const sizeMapping = {
+      s: [50],
+      m: [52],
+      l: [54],
+      xl: [56],
+      xxl: [58],
+      '3xxl': [60],
+      '4xxl': [62],
+    };
+
     if (size) {
+      const lowerSize = size.toLowerCase();
+      const numericSizes = sizeMapping[lowerSize] || [];
+
       filter.sizes = {
-        $elemMatch: { sizevalue: size.toLowerCase() },
+        $elemMatch: {
+          $or: [
+            { sizevalue: lowerSize }, // Match string value like 'm'
+            { sizevalue: { $in: numericSizes.map(String) } }, // Match mapped numbers as strings
+          ],
+        },
       };
     }
 
@@ -336,6 +381,7 @@ exports.getAllProductSizeFilter = async (req, res) => {
     });
   }
 };
+
 exports.getAllProductPriceFilter = async (req, res) => {
   try {
     const { size, limit } = req.query;
