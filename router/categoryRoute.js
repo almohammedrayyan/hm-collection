@@ -11,6 +11,11 @@ const {
   updateCategoryBanner,
   getDeleteCategoryBanner,
   createContact,
+  createCategoryMainBanner,
+  getAllCategoryMainBanner,
+  getOneCategoryMainBanner,
+  updateCategoryMainBanner,
+  getDeleteCategoryMainBanner,
 } = require("../controller/categoryConttroller");
 const multer = require("multer");
 var multerS3 = require("multer-s3-v2");
@@ -64,4 +69,20 @@ router.put("/get-edit-category-banner/:id", upload.single("avatar"),updateCatego
 // Route to delete a product by ID
 router.delete("/delete-category-banner/:id", getDeleteCategoryBanner);
 router.post("/create-contact",createContact)
+
+//advertistment banner
+
+router.post("/create-category-main-banner",upload.single("avatar"), createCategoryMainBanner);
+
+// Route to get all products
+router.get("/get-category-main-banner", getAllCategoryMainBanner);
+
+// Route to get a single product by ID
+router.get("/get-one-category-main-banner/:id", getOneCategoryMainBanner);
+
+// Route to update an existing product by ID
+
+router.put("/get-edit-category-main-banner/:id", upload.single("avatar"),updateCategoryMainBanner);
+// Route to delete a product by ID
+router.delete("/delete-category-main-banner/:id", getDeleteCategoryMainBanner);
 module.exports = router;

@@ -1,5 +1,7 @@
 const Category = require("../models/categoryModel");
 const catgeoryModelBanner = require("../models/catgeoryModelBanner");
+const catgeoryAdvertistmentBanner = require("../models/mainBannerModal");
+
 const nodemailer = require("nodemailer");
 exports.createCategory = async (req, res) => {
   try {
@@ -137,7 +139,81 @@ exports.updateCategoryBanner = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+///main banner adeverstistment
 
+exports.createCategoryMainBanner = async (req, res) => {
+  try {
+    const { name, link } = req.body;
+    const avatar = req.file ? req.file.location : null; // AWS S3 URL
+    let category = new catgeoryAdvertistmentBanner({
+      name,
+      link,
+      avatar,
+    });
+    await category.save();
+    res
+      .status(201)
+      .json({ message: "Category created successfully", category });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+exports.getAllCategoryMainBanner = async (req, res) => {
+  try {
+    const categories = await catgeoryAdvertistmentBanner.find({});
+    res.status(201).json({ message: "Get All Categories", categories });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getOneCategoryMainBanner = async (req, res) => {
+  try {
+    const category = await catgeoryAdvertistmentBanner.findById(req.params.id);
+    res.status(201).json({ message: "Get One Product", category });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getDeleteCategoryMainBanner = async (req, res) => {
+  try {
+    const categoryOne = await catgeoryAdvertistmentBanner.findByIdAndDelete(
+      req.params.id
+    );
+    if (!categoryOne) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+    res
+      .status(200)
+      .json({ message: "Category deleted successfully", categoryOne });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.updateCategoryMainBanner = async (req, res) => {
+  try {
+    // Expecting updated values
+    const avatar = req.file ? req.file.location : null;
+    const updatedCategory = await catgeoryAdvertistmentBanner.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      avatar,
+      { new: true, runValidators: true } // `new: true` returns the updated document
+    );
+
+    if (!updatedCategory) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Category updated successfully", updatedCategory });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 exports.createContact = async (req, res) => {
   const { firstName, lastName, email, phone, message } = req.body;
 
